@@ -507,40 +507,52 @@ public class CCDControl extends MVCPortlet {
 			if (mode.equals("operation")) {
 				jsonObject.put("success", true);
 
-				String urlImageParameter = (String) experiment
-						.getParameterValue(parameters.get(DYNAMIC_URL),
-								currentUser.getEmailAddress(),
-								currentUser.getPassword(), reservationId);
-				if (urlImageParameter != null) {
-					urlImage = urlImageParameter;
-					log.info("URL for surveillance camera loaded:" + urlImage);
-				} else {
-					urlImage = errorImageUrl;
-					log.info("URL for surveillance camera not detected");
+				try{
+					String urlImageParameter = (String) experiment
+							.getParameterValue(parameters.get(DYNAMIC_URL),
+									currentUser.getEmailAddress(),
+									currentUser.getPassword(), reservationId);
+					if (urlImageParameter != null) {
+						urlImage = urlImageParameter;
+						log.info("URL for surveillance camera loaded:" + urlImage);
+					} else {
+						urlImage = errorImageUrl;
+						log.info("URL for surveillance camera not detected");
+					}
+	
+					log.info("Serve image:" + urlImage);
+					jsonObject.put("url", urlImage);
+				} catch (OnlineExperimentException e) {
+					log.error("Error to store new values" + e.getMessage());
+					jsonObject.put("success", false);
+					jsonObject.put("message", "error_execution");
 				}
-
-				log.info("Serve image:" + urlImage);
-				jsonObject.put("url", urlImage);
 
 			} else if (mode.equals("widefieldUrl")) {
 
-				String urlImageParameter = (String) experiment
-						.getParameterValue(
-								parameters.get(DYNAMIC_URL_WIDEFIELD),
-								currentUser.getEmailAddress(),
-								currentUser.getPassword(), reservationId);
-				if (urlImageParameter != null) {
-					jsonObject.put("success", true);
-					log.info("URL for surveillance camera loaded:"
-							+ urlImageParameter);
-				} else {
+				try{
+					String urlImageParameter = (String) experiment
+							.getParameterValue(
+									parameters.get(DYNAMIC_URL_WIDEFIELD),
+									currentUser.getEmailAddress(),
+									currentUser.getPassword(), reservationId);
+					if (urlImageParameter != null) {
+						jsonObject.put("success", true);
+						log.info("URL for surveillance camera loaded:"
+								+ urlImageParameter);
+					} else {
+						jsonObject.put("success", false);
+						urlImageParameter = errorImageUrl;
+						log.info("URL for surveillance camera not detected");
+					}
+	
+					log.info("Serve image:" + urlImageParameter);
+					jsonObject.put("url", urlImageParameter);
+				} catch (OnlineExperimentException e) {
+					log.error("Error to store new values" + e.getMessage());
 					jsonObject.put("success", false);
-					urlImageParameter = errorImageUrl;
-					log.info("URL for surveillance camera not detected");
+					jsonObject.put("message", "error_execution");
 				}
-
-				log.info("Serve image:" + urlImageParameter);
-				jsonObject.put("url", urlImageParameter);
 			}
 			/*
 			 * SET VALUES
@@ -555,30 +567,32 @@ public class CCDControl extends MVCPortlet {
 				
 				if (!gamma.equals("error") && !gain.equals("error")
 						&& !exposure.equals("error")) {
+					try{
+						experiment.setParameterValue(parameters.get(GAMMA),
+								Integer.parseInt(gamma),
+								currentUser.getEmailAddress(),
+								currentUser.getPassword(), reservationId);
+						experiment.setParameterValue(parameters.get(GAIN),
+								Integer.parseInt(gain),
+								currentUser.getEmailAddress(),
+								currentUser.getPassword(), reservationId);
+						experiment.setParameterValue(parameters.get(EXPOSURE),
+								Double.parseDouble(exposure),
+								currentUser.getEmailAddress(),
+								currentUser.getPassword(), reservationId);
 
-					experiment.setParameterValue(parameters.get(GAMMA),
-							Integer.parseInt(gamma),
-							currentUser.getEmailAddress(),
-							currentUser.getPassword(), reservationId);
-					experiment.setParameterValue(parameters.get(GAIN),
-							Integer.parseInt(gain),
-							currentUser.getEmailAddress(),
-							currentUser.getPassword(), reservationId);
-//					experiment.setParameterValue(parameters.get(CONTRAST),
-//							Integer.parseInt(contrast),
-//							currentUser.getEmailAddress(),
-//							currentUser.getPassword(), reservationId);
-					experiment.setParameterValue(parameters.get(EXPOSURE),
-							Double.parseDouble(exposure),
-							currentUser.getEmailAddress(),
-							currentUser.getPassword(), reservationId);
-
-					experiment.executeOperation(operations.get(SET_VALUES),
-							currentUser.getEmailAddress(),
-							currentUser.getPassword(), reservationId);
-					log.info("Save Parameters:" + "[B=" + brightness + ",G="
-							+ gain + ",E=" + exposure);
-					jsonObject.put("success", true);
+						experiment.executeOperation(operations.get(SET_VALUES),
+								currentUser.getEmailAddress(),
+								currentUser.getPassword(), reservationId);
+						log.info("Save Parameters:" + "[B=" + brightness + ",G="
+								+ gain + ",E=" + exposure);
+						jsonObject.put("success", true);
+						
+					} catch (OnlineExperimentException e) {
+						log.error("Error to store new values" + e.getMessage());
+						jsonObject.put("success", false);
+						jsonObject.put("message", "error_execution");
+					}
 				}
 
 			}
@@ -595,36 +609,47 @@ public class CCDControl extends MVCPortlet {
 				log.info("Getting values");
 
 				//TODO poner esta operación en un try
-				experiment.executeOperation(operations.get(GET_VALUES),
-						currentUser.getEmailAddress(),
-						currentUser.getPassword(), reservationId);
+				try {
+					experiment.executeOperation(operations.get(GET_VALUES),
+							currentUser.getEmailAddress(),
+							currentUser.getPassword(), reservationId);
+				} catch (OnlineExperimentException e) {
+					log.error("Error to store new values" + e.getMessage());
+				}
 
 				//TODO El resto en otras
-				gamma_value = (Integer) experiment.getParameterValue(
-						parameters.get(GAMMA),
-						currentUser.getEmailAddress(),
-						currentUser.getPassword(), reservationId);
-				gain_value = (Integer) experiment.getParameterValue(
-						parameters.get(GAIN), currentUser.getEmailAddress(),
-						currentUser.getPassword(), reservationId);
-				contrast_value = (Integer) experiment.getParameterValue(
-						parameters.get(CONTRAST),
-						currentUser.getEmailAddress(),
-						currentUser.getPassword(), reservationId);
-				exposure_value = (Double) experiment.getParameterValue(
-						parameters.get(EXPOSURE),
-						currentUser.getEmailAddress(),
-						currentUser.getPassword(), reservationId);
-
-				log.info("Load Parameters:" + "[B=" + gamma_value + ",G="
-						+ gain_value + ",C=" + contrast_value + ",E="
-						+ exposure_value);
-				jsonObject.put("gamma", String.valueOf(gamma_value));
-				jsonObject.put("gain", String.valueOf(gain_value));
-				jsonObject.put("exposure", String.valueOf(exposure_value));
-				jsonObject.put("contrast", String.valueOf(contrast_value));
-				jsonObject.put("success", true);
-
+				try {
+					gamma_value = (Integer) experiment.getParameterValue(
+							parameters.get(GAMMA),
+							currentUser.getEmailAddress(),
+							currentUser.getPassword(), reservationId);
+					
+					gain_value = (Integer) experiment.getParameterValue(
+							parameters.get(GAIN), currentUser.getEmailAddress(),
+							currentUser.getPassword(), reservationId);
+					contrast_value = (Integer) experiment.getParameterValue(
+							parameters.get(CONTRAST),
+							currentUser.getEmailAddress(),
+							currentUser.getPassword(), reservationId);
+					exposure_value = (Double) experiment.getParameterValue(
+							parameters.get(EXPOSURE),
+							currentUser.getEmailAddress(),
+							currentUser.getPassword(), reservationId);
+					
+					log.info("Load Parameters:" + "[B=" + gamma_value + ",G="
+							+ gain_value + ",C=" + contrast_value + ",E="
+							+ exposure_value);
+					jsonObject.put("gamma", String.valueOf(gamma_value));
+					jsonObject.put("gain", String.valueOf(gain_value));
+					jsonObject.put("exposure", String.valueOf(exposure_value));
+					jsonObject.put("contrast", String.valueOf(contrast_value));
+					jsonObject.put("success", true);
+					
+				} catch (OnlineExperimentException e) {
+						log.error("Error to store new values" + e.getMessage());
+						jsonObject.put("success", false);
+						jsonObject.put("message", "error_execution");
+				}
 			}
 
 			if (!mode.equals("popup")) {
@@ -665,11 +690,7 @@ public class CCDControl extends MVCPortlet {
 					+ e.getMessage());
 			jsonObject.put("success", false);
 			jsonObject.put("message", "error_reservation_not_active");
-		} catch (OnlineExperimentException e) {
-			log.error("Error to store new values" + e.getMessage());
-			jsonObject.put("success", false);
-			jsonObject.put("message", "error_execution");
-		} catch (NoSuchReservationException e) {
+		}  catch (NoSuchReservationException e) {
 			log.error("Problem with parameter invalid experiment:"
 					+ e.getMessage());
 			jsonObject.put("success", false);

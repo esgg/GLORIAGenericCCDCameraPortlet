@@ -1,16 +1,5 @@
 <div id="webcamView" class="yui3-skin-capsule">
 
-	<% if (checkboxBrightness.equalsIgnoreCase("1")) {%>
-	<span>
-		<label class="aui-field-label" for="<portlet:namespace />brightness_value"><liferay-ui:message key='label-brightness' />: </label>
-		<input id="<portlet:namespace />brightness_value" 
-			name="brightness_value" 
-			value="-"
-			/>
-		<span class="<portlet:namespace />brightness_slider"></span>
-	</span>
-	<%} %>
-
 	<span>
 		<label class="aui-field-label" for="<portlet:namespace />gamma_value"><liferay-ui:message key='label-gamma' />: </label>
 		<input id="<portlet:namespace />gamma_value" 

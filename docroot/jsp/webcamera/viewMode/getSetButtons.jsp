@@ -39,15 +39,6 @@ function <portlet:namespace />setValues(){
 	
 	var validate = true;
 
-	
-
-	<% if (checkboxBrightness.equalsIgnoreCase("1") 
-			&& !brightness_value.equalsIgnoreCase("<liferay-ui:message key='label-error' />")) { %>
-		brightness = document.getElementById("<portlet:namespace />brightness_value").value;
-	<% } else {%>
-		brightness = "error";
-	<% } %>
-	
 	<% if (checkboxGain.equalsIgnoreCase("1") 
 			&& !gain_value.equalsIgnoreCase("<liferay-ui:message key='label-error' />")) {%>
 		gain = document.getElementById("<portlet:namespace />gain_value").value;
